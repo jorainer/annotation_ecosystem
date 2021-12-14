@@ -1,0 +1,27 @@
+---
+title: "Supplementary data for: \\textit{A flexible, modular, expandable ecosystem for metabolimics data annotation in R}"
+author: "Johannes Rainer, Andrea Vicini, Sebastian Gibb, Laurent Gatto, and Michael Witting"
+graphics: yes
+output:
+  BiocStyle::pdf_document
+---
+
+```{r  biocstyle, echo = FALSE, results = "asis", message = FALSE }
+library(BiocStyle)
+BiocStyle::markdown()
+```
+
+This documents provides XXX use cases describing the annotation of non-target
+metabolomics and small compound datasets using functionality from the
+`r Biocpkg("MetaboAnnotation")` and `r Biocpkg("MetaboCoreUtils")` packages
+which is well integrated with the `r Biocpkg("xcms")`, `r Biocpkg("Spectra")`,
+`r Biocpkg("MsBackendMassbank")` and `r Biocpkg("CompoundDb")` packages. All
+data used in this document is available within the [github
+repository](https://github.com/jorainer/annotation_ecosystem) or through the
+`r Biocpkg("msdata")` package.
+
+# MS1 annotation
+
+
+
+# MS2 annotation
