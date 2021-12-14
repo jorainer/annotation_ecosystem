@@ -22,6 +22,45 @@ repository](https://github.com/jorainer/annotation_ecosystem) or through the
 
 # MS1 annotation
 
+In this example we annotate chromatographic peaks identified in a test sample
+first based only on their m/z values and then using their m/z and retention
+time. The data set is provided by the `r Biocpkg("msdata")` package and consists
+of a DDA experiment on a pesticide mix sample (@Michael, please expand).
 
+Below we load the data and perform the chromatographic peak detection using the
+`r Biocpkg("xcms")` package.
+
+```{r}
+library(xcms)
+library(msdata)
+pest_file <- system.file("TripleTOF-SWATH", "PestMix1_DDA.mzML",
+                         package = "msdata")
+pest_data <- readMSData(pest_file, mode = "onDisk")
+
+```
+
+We next perform the chromatographic peak detection using the *centWave*
+algorithm (see the *LC-MS/MS data analysis with xcms* vignette from the `xcms`
+package for details on the chromatographic peak detection settings).
+
+```{r}
+cwp <- CentWaveParam(snthresh = 5, noise = 100, ppm = 10,
+                     peakwidth = c(3, 30))
+pest_all <- findChromPeaks(pest_all, param = cwp)
+```
+
+In total `r nrow(chromPeaks(pest_all))` chromatographic peaks have been
+identified. Below we display the first 6 of them.
+
+```{r}
+head(chromPeaks(pest_all))
+```
+
+MassBank CompDb.
+
+- Pestizide DDA data set?
+- Add retention time and adduct information to a `CompDb`/`IonDb`.
 
 # MS2 annotation
+
+-
