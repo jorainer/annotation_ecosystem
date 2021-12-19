@@ -267,6 +267,132 @@ Columns `"score"` and `"score_rt"` contain the difference between the query and
 the annotated target's m/z and retention time, respectively.
 
 
+## Annotation using reference m/z and retention indices
+
+Retention time is a valuabe orthogonal information for metabolite identification,
+but chromatographic conditions are far from being standardized. Even when using 
+nominally the same chromatographic system, meaning column and eluents,
+differences in retention times arise due to dead volumes, gradient delay volumes,
+etc. In GC-MS retention time indexing has been used to normalize for drifts in 
+retention times by converting them into retention indices. A similar approach 
+has been recently described for LC-MS [Stoffel et al., 2021] using N-Alkyl-
+pyridinium sulfonates as retention indexing substances. Their use allows to 
+convert retention times into retention indices and to compare retention 
+information across different LC-MS systems.
+
+We first load data from an non-targeted metabolomic experiments. This data has 
+been conmpletely processed. Each feature is identified by a unique name.
+
+```{r}
+library(MetaboCoreUtils)
+library(MetaboAnnotation)
+
+ms1_features <- read.table("data/rti_ms_pos_features.txt", header = TRUE,
+                           sep = "\t")
+head(ms1_features)
+
+```
+
+Likewise we load the information on the N-Alkyl-pyridinium sulfonates. The 
+retention index is defined as the number of carbons in the alkyl chain times 100.
+
+```{r}
+ms1_naps <- read.table("data/rti_ms_pos_naps.txt", header = TRUE, sep = "\t")
+head(ms1_naps)
+```
+
+The relationship between the retention time and retention index can be ploted.
+
+```{r}
+plot(ms1_naps)
+```
+
+We can use the N-Alkly-pyridinium sulfonates to convert the retention times of 
+the measured featurs using the `indexRtime` function. By default linear 
+interpolation is used for conversion, but other (custom) functions can be 
+defined if required.
+
+```{r}
+ms1_features$rindex <- indexRtime(ms1_features$rtime,
+                                  ms1_naps)
+```
+
+This data can be then annotated using reference databases. Two different 
+databases are used. One was obtained on a UHPLC column and one on a HPLC column 
+of the same column chemistry. The non-targeted data was obtained from a HPLC
+column, but using a different LC hardware, resulting in different absolute
+retention times.
+
+```{r}
+db_hplc <- read.table("data/rti_db_hplc.txt",
+                      header = TRUE,
+                      sep = "\t",
+                      quote = "",
+                      comment.char = "")
+
+db_uhplc <- read.table("data/rti_db_uhplc.txt",
+                      header = TRUE,
+                      sep = "\t",
+                      quote = "",
+                      comment.char = "")
+```
+
+Next we can define the `Mass2MzRtParam` similar to above. We will use an 
+absolute error of 10 retention index units and use [M+H]+ and [M+Na]+ adducts.
+
+```{r}
+match_param <- Mass2MzRtParam(adducts = c("[M+H]+", "[M+Na]+"),
+                              tolerance = 0.005,
+                              toleranceRt = 10)
+```
+
+Matching can now be performed. Important is that the column with the retention 
+index needs to be defined using `rtColname`. Matching is performed against both
+database and is then filtered to only contain features with minimum one match.
+
+```{r}
+matches_hplc <- matchMz(ms1_features,
+                        db_hplc,
+                        match_param,
+                        massColname = "exact.mass",
+                        mzColname = "mz",
+                        rtColname = "rindex")
+
+matches_hplc <- matches_hplc[whichQuery(matches_hplc)]
+
+matches_uhplc <- matchMz(ms1_features,
+                         db_uhplc,
+                         match_param,
+                         massColname = "exact.mass",
+                         mzColname = "mz",
+                         rtColname = "rindex")
+
+matches_uhplc <- matches_uhplc[whichQuery(matches_uhplc)]
+
+```
+
+We next build a result table for the successfully annotated chromatographic
+peaks. First for the results matching with the HPLC database.
+
+```{r, results = "asis"}
+library(pander)
+pandoc.table(head(as.data.frame(
+  matchedData(matches_hplc, c("Name", "mz", "rindex", "target_name",
+                              "target_rindex", "adduct", "score", "score_rt")))),
+  style = "rmarkdown", split.tables = Inf)
+```
+
+Then for matching with the UPLC database.
+
+```{r, results = "asis"}
+library(pander)
+pandoc.table(head(as.data.frame(
+  matchedData(matches_uhplc, c("Name", "mz", "rindex", "target_name",
+                               "target_rindex", "adduct", "score", "score_rt")))),
+  style = "rmarkdown", split.tables = Inf)
+```
+
+
 # MS2 annotation
 
 In addition to MS1 annotation described in the previous section, it is also
