@@ -1,5 +1,5 @@
 ---
-title: "Supplementary data for: \\textit{A flexible, modular, expandable ecosystem for metabolimics data annotation in R}"
+title: "Supplementary data for: \\textit{A modular and expandable ecosystem for metabolimics data annotation in R}"
 author: "Johannes Rainer, Andrea Vicini, Sebastian Gibb, Laurent Gatto, and Michael Witting"
 graphics: yes
 output:
@@ -13,17 +13,14 @@ library(knitr)
 opts_chunk$set(message = FALSE, warning = FALSE, fig.width = 8, fig.height = 7,
                dev = c("png"))
 ## BiocStyle::markdown()
-
 ```
 
-This documents provides XXX use cases describing the annotation of non-target
-metabolomics and small compound datasets using functionality from the
-`r Biocpkg("MetaboAnnotation")` and `r Biocpkg("MetaboCoreUtils")` packages
-which is well integrated with the `r Biocpkg("xcms")`, `r Biocpkg("Spectra")`,
-`r Biocpkg("MsBackendMassbank")` and `r Biocpkg("CompoundDb")` packages. All
-data used in this document is available within the [github
-repository](https://github.com/jorainer/annotation_ecosystem) or through the
-`r Biocpkg("msdata")` package.
+This documents provides use cases describing the annotation of non-target
+metabolomics and small compound datasets using functionality from the `r
+Biocpkg("MetaboAnnotation")`, `r Biocpkg("MetaboCoreUtils")` and `r
+Biocpkg("CompoundDb")` packages. All data used in this document is available
+within the [github
+repository](https://github.com/jorainer/annotation_ecosystem).
 
 
 # MS1 annotation
@@ -228,7 +225,19 @@ idb <- IonDb(tempfile(), cdb)
 
 #' Insert measured m/z and retention times for ions
 idb <- insertIon(idb, std_ions)
+idb
 ```
+
+The advantage of such an annotation database over individual (text) file-based
+annotation approaches is obvious: along with the annotation data also metadata
+can be saved and the database can be versioned, which is crucial for
+reproducible workflows. Also, the database's SQLite file is portable and can be
+distributed and used on different computers. In addition, it would also be
+possible to use a MySQL-based database system which would enable centralized
+annotation resources in a laboratory. More information on the creation and usage
+of annotation resources with the `CompoundDb` package is provided in its package
+vignettes which are also available
+[here](https://euracbiomedicalresearch.github.io/CompoundDb/).
 
 We can now annotate our peaks against that database using the same call as
 above, but providing the `idb` as `target` parameter.
@@ -269,16 +278,17 @@ the annotated target's m/z and retention time, respectively.
 
 ## Annotation using reference m/z and retention indices
 
-Retention time is a valuabe orthogonal information for metabolite identification,
-but chromatographic conditions are far from being standardized. Even when using
-nominally the same chromatographic system, meaning column and eluents,
-differences in retention times arise due to dead volumes, gradient delay volumes,
-etc. In GC-MS retention time indexing has been used to normalize for drifts in
-retention times by converting them into retention indices. A similar approach
-has been recently described for LC-MS [Stoffel et al., 2021] using N-Alkyl-
-pyridinium sulfonates as retention indexing substances. Their use allows to
-convert retention times into retention indices and to compare retention
-information across different LC-MS systems.
+Retention time is a valuabe orthogonal information for metabolite
+identification, but chromatographic conditions are far from being
+standardized. Even when using nominally the same chromatographic system, meaning
+column and eluents, differences in retention times arise due to dead volumes,
+gradient delay volumes, etc. In GC-MS retention time indexing has been used to
+normalize for drifts in retention times by converting them into retention
+indices. A similar approach has been recently described for LC-MS
+[@stoffelNAlkylpyridiniumSulfonatesRetention2021] using N-Alkyl-pyridinium
+sulfonates as retention indexing substances. Their use allows to convert
+retention times into retention indices and to compare retention information
+across different LC-MS systems.
 
 We first load data from an non-targeted metabolomic experiments. This data has
 been conmpletely processed. Each feature is identified by a unique name.
@@ -294,7 +304,8 @@ head(ms1_features)
 ```
 
 Likewise we load the information on the N-Alkyl-pyridinium sulfonates. The
-retention index is defined as the number of carbons in the alkyl chain times 100.
+retention index is defined as the number of carbons in the alkyl chain times
+100.
 
 ```{r}
 ms1_naps <- read.table("data/rti_ms_pos_naps.txt", header = TRUE, sep = "\t")
@@ -313,8 +324,7 @@ interpolation is used for conversion, but other (custom) functions can be
 defined if required.
 
 ```{r}
-ms1_features$rindex <- indexRtime(ms1_features$rtime,
-                                  ms1_naps)
+ms1_features$rindex <- indexRtime(ms1_features$rtime, ms1_naps)
 ```
 
 This data can be then annotated using reference databases. Two different
@@ -338,7 +348,8 @@ db_uhplc <- read.table("data/rti_db_uhplc.txt",
 ```
 
 Next we can define the `Mass2MzRtParam` similar to above. We will use an
-absolute error of 10 retention index units and use [M+H]+ and [M+Na]+ adducts.
+absolute error of 10 retention index units and use `[M+H]+ `and `[M+Na]+`
+adducts.
 
 ```{r}
 match_param <- Mass2MzRtParam(adducts = c("[M+H]+", "[M+Na]+"),
@@ -348,7 +359,8 @@ match_param <- Mass2MzRtParam(adducts = c("[M+H]+", "[M+Na]+"),
 
 Matching can now be performed. Important is that the column with the retention
 index needs to be defined using `rtColname`. Matching is performed against both
-database and is then filtered to only contain features with minimum one match.
+databases and results are then filtered to only contain features with at least
+one match.
 
 ```{r}
 matches_hplc <- matchMz(ms1_features,
@@ -392,39 +404,6 @@ pandoc.table(head(as.data.frame(
   style = "rmarkdown", split.tables = Inf)
 ```
 
-Below we load the data and perform the chromatographic peak detection using the
-`r Biocpkg("xcms")` package.
-
-```{r}
-library(xcms)
-library(msdata)
-pest_file <- system.file("TripleTOF-SWATH", "PestMix1_DDA.mzML",
-                         package = "msdata")
-pest_data <- readMSData(pest_file, mode = "onDisk")
-
-```
-
-We next perform the chromatographic peak detection using the *centWave*
-algorithm (see the *LC-MS/MS data analysis with xcms* vignette from the `xcms`
-package for details on the chromatographic peak detection settings).
-
-```{r}
-cwp <- CentWaveParam(snthresh = 5, noise = 100, ppm = 10,
-                     peakwidth = c(3, 30))
-pest_all <- findChromPeaks(pest_all, param = cwp)
-```
-
-In total `r nrow(chromPeaks(pest_all))` chromatographic peaks have been
-identified. Below we display the first 6 of them.
-
-```{r}
-head(chromPeaks(pest_all))
-```
-
-MassBank CompDb.
-
-- Pestizide DDA data set?
-- Add retention time and adduct information to a `CompDb`/`IonDb`.
 
 # MS2 annotation
 
@@ -548,10 +527,9 @@ match was based however on a single peak.
 plotSpectraMirror(spectra_match[3])
 ```
 
-Note that we could now also add some of the MS2 spectra from the present test
-set, to the `IonDb` using the `insertSpectra` function. This enables generation
-of lab-internal reference databases.
-
+Note that we could now also add some of the (cleaned and annotated) MS2 spectra
+from the present test set, to the `IonDb` using the `insertSpectra`
+function. This enables generation of lab-internal reference databases.
 
 
 # Session information {-}
