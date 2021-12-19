@@ -3,16 +3,17 @@ title: "Supplementary data for: \\textit{A flexible, modular, expandable ecosyst
 author: "Johannes Rainer, Andrea Vicini, Sebastian Gibb, Laurent Gatto, and Michael Witting"
 graphics: yes
 output:
-  BiocStyle::pdf_document
+  rmarkdown::pdf_document
 bibliography: references.bib
 ---
 
-```{r  biocstyle, echo = FALSE, results = "asis", message = FALSE }
+```{r biocstyle, echo = FALSE, message = FALSE }
 library(BiocStyle)
 library(knitr)
 opts_chunk$set(message = FALSE, warning = FALSE, fig.width = 8, fig.height = 7,
                dev = c("png"))
-BiocStyle::markdown()
+## BiocStyle::markdown()
+
 ```
 
 This documents provides XXX use cases describing the annotation of non-target
@@ -31,7 +32,7 @@ In this example we annotate chromatographic peaks identified in a test sample
 provided within this repository first based only on their m/z values and then
 using their m/z and retention times against previously determined values for a
 set of pure standards. The test data represents LC-MS/MS measurements of a set
-of 15 pure standards. In detail ... (@VINICIUS please add info on sample).
+of 15 pure standards. In detail ... (VINICIUS please add info on sample).
 
 Below we load the data and perform the chromatographic peak detection using the
 `r Biocpkg("xcms")` package.
@@ -206,7 +207,7 @@ the matching.
 
 ```{r}
 param <- MzRtParam(ppm = 10, toleranceRt = 7)
-pks_match <- matchMz(pks, ions, param = param,
+pks_match <- matchMz(pks, std_ions, param = param,
                      mzColname = c("mz", "ion_mz"),
                      rtColname = c("rt", "ion_rt"))
 pks_match
@@ -401,3 +402,5 @@ The R version and versions of used packages are listed below.
 ```{r}
 sessionInfo()
 ```
+
+# References
