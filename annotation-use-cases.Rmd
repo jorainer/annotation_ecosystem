@@ -66,7 +66,7 @@ the detected chromatographic peaks.
 head(chromPeaks(std_data))
 ```
 
-We next annotate these chromatographic peaks based only using their m/z
+We next annotate these chromatographic peaks only using their m/z
 values. As a reference we load a `CompDb` database containing all compounds from
 the Human Metabolom Database [@wishartHMDBHumanMetabolome2018] version 5.0 which
 is also provided within this repository. Such annotation resources can be
@@ -101,7 +101,7 @@ values for expected ions of the compounds need to be calculated first. With
 `Mass2MzParam` we can configure the parameters for the annotation. Parameter
 `adducts` allows to specify the adducts (ions) we expect to see mostly in the
 data set. For our example we assume to see mostly `[M+H]+` and `[M+Na]+`
-positive ions. With parameters `tolerance` and `ppm` we can finaly define also
+positive ions. With parameters `tolerance` and `ppm` we can finally define also
 the absolute and m/z relative acceptable difference for m/z values to be
 considered matching.
 
@@ -270,7 +270,7 @@ whichQuery(pks_match)
 pks_match <- pks_match[whichQuery(pks_match)]
 ```
 
-We next build a result table for the sucessfully annotated chromatographic
+We next build a result table for the successfully annotated chromatographic
 peaks.
 
 ```{r, results = "asis"}
@@ -286,7 +286,7 @@ the annotated target's m/z and retention time, respectively.
 
 ## Annotation using reference m/z and retention indices
 
-Retention time is a valuabe orthogonal information for metabolite
+Retention time is a valuable orthogonal information for metabolite
 identification, but chromatographic conditions are far from being
 standardized. Even when using nominally the same chromatographic system, meaning
 column and eluents, differences in retention times arise due to dead volumes,
@@ -299,7 +299,7 @@ retention times into retention indices and to compare retention information
 across different LC-MS systems.
 
 We first load data from an non-targeted metabolomic experiments. This data has
-been conmpletely processed. Each feature is identified by a unique name.
+been completely processed. Each feature is identified by a unique name.
 
 ```{r}
 library(MetaboCoreUtils)
@@ -318,14 +318,14 @@ ms1_naps <- read.table("data/rti_ms_pos_naps.txt", header = TRUE, sep = "\t")
 head(ms1_naps)
 ```
 
-The relationship between the retention time and retention index can be ploted.
+The relationship between the retention time and retention index can be plotted.
 
 ```{r}
 plot(ms1_naps)
 ```
 
 We can use the N-Alkly-pyridinium sulfonates to convert the retention times of
-the measured featurs using the `indexRtime` function. By default linear
+the measured features using the `indexRtime` function. By default linear
 interpolation is used for conversion, but other (custom) functions can be
 defined if required.
 
@@ -490,8 +490,8 @@ differences of 50ppm between peaks from a query and a target spectrum. Since
 HMDB does not provide precursor m/z we in addition have to disable the
 additional matching filter (i.e. set `requirePrecursor = FALSE`), which has
 however a negative impact on the performance of the comparisons. By default,
-spectra similarities (calculated with the normalized dotproduct) higher than 0.7
-will be considered matching.
+spectra similarities (calculated with the normalized dot product) higher than 
+0.7 will be considered matching.
 
 ```{r}
 spectra_match <- matchSpectra(
