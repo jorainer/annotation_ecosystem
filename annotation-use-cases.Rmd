@@ -1,6 +1,6 @@
 ---
 title: "Supplementary data for: \\textit{A modular and expandable ecosystem for metabolimics data annotation in R}"
-author: "Johannes Rainer, Andrea Vicini, Sebastian Gibb, Laurent Gatto, and Michael Witting"
+author: "Johannes Rainer, Andrea Vicini, ... Sebastian Gibb, Laurent Gatto, and Michael Witting"
 graphics: yes
 output:
   rmarkdown::pdf_document
@@ -29,7 +29,9 @@ In this example we annotate chromatographic peaks identified in a test sample
 provided within this repository first based only on their m/z values and then
 using their m/z and retention times against previously determined values for a
 set of pure standards. The test data represents LC-MS/MS measurements of a set
-of 15 pure standards. In detail ... (VINICIUS please add info on sample).
+of metabolite standards. In brief, aliquots for pure standards of 15 metabolites
+were solved in water and injected into a LC-MS system. Details are provided in
+the Material and Methods section in the main text.
 
 Below we load the data and perform the chromatographic peak detection using the
 `r Biocpkg("xcms")` package.
@@ -66,12 +68,12 @@ the detected chromatographic peaks.
 head(chromPeaks(std_data))
 ```
 
-We next annotate these chromatographic peaks only using their m/z
+We next annotate these chromatographic peaks using only their m/z
 values. As a reference we load a `CompDb` database containing all compounds from
 the Human Metabolom Database [@wishartHMDBHumanMetabolome2018] version 5.0 which
 is also provided within this repository. Such annotation resources can be
 created with the `r Biocpkg("CompoundDb")` package (see the [package
-documentation](https://euracbiomedicalresearch.github.io/CompoundDb) for more
+documentation](https://RforMassSpectrometry.github.io/CompoundDb) for more
 information).
 
 ```{r}
@@ -102,8 +104,8 @@ values for expected ions of the compounds need to be calculated first. With
 `adducts` allows to specify the adducts (ions) we expect to see mostly in the
 data set. For our example we assume to see mostly `[M+H]+` and `[M+Na]+`
 positive ions. With parameters `tolerance` and `ppm` we can finally define also
-the absolute and m/z relative acceptable difference for m/z values to be
-considered matching.
+the absolute and/or m/z relative acceptable difference, respectively, for m/z
+values to be considered matching.
 
 ```{r}
 library(MetaboAnnotation)
@@ -137,7 +139,8 @@ colnames(pks_match)
 
 The n:m mapping is represented in the `matches` data frame. It maps each
 annotated query element to all matching target elements. Below we list the first
-6 rows from that table.
+6 rows from that table. Column `"score"` provides the difference between the
+query and target m/z values (in Da).
 
 ```{r}
 head(matches(pks_match))
@@ -188,7 +191,7 @@ some property of the compound (other than their mass). Thus, also the retention
 times contain information that can improve the annotation. In this section we
 use information from a previous experiment in which pure standards were measured
 with the same LC-MS setup used to generate the present test data and in which
-the retention time as well as the ion (adduct) and it's m/z value were
+the retention time as well as the ion (adduct) and its m/z value were
 determined. These reference values were thus empirically determined on the same
 instruments with the same setup and should thus help to get higher confidence
 annotations.
@@ -208,7 +211,11 @@ m/z-relative acceptable difference of the m/z values and with `toleranceRt` the
 absolute acceptable difference in measured retention times. The parameters
 `mzColname` and `rtColname` allow us to define the names of the columns in the
 query and target objects containing the m/z values and retention time values for
-the matching.
+the matching. Settings for `ppm` and `toleranceRt` should be adapted to the
+experimental setup, retention time difference could e.g. be larger for
+HILIC-based chromatographic separation. Below we use a difference of 7 seconds
+(since retention times in `std_ions` and in the `xcms` result are reported in
+seconds).
 
 ```{r}
 param <- MzRtParam(ppm = 10, toleranceRt = 7)
@@ -281,7 +288,8 @@ pandoc.table(as.data.frame(
 ```
 
 Columns `"score"` and `"score_rt"` contain the difference between the query and
-the annotated target's m/z and retention time, respectively.
+the annotated target's m/z (in Da) and retention time (in seconds),
+respectively.
 
 
 ## Annotation using reference m/z and retention indices
@@ -433,10 +441,12 @@ chromatographic peak or a feature matches the reference spectrum from a pure
 standard.
 
 We first extract all MS2 spectra for the annotated chromatographic peaks using
-the `chromPeakSpectra` function (MS2 spectra for features could be extracted
-with the `featureSpectra` function). This will return all MS2 spectra with the
-precursor m/z and retention time within the m/z range and retention time range
-of the chromatographic peak.
+the `chromPeakSpectra` function from the `xcms` result object. This will return
+all MS2 spectra with the precursor m/z and retention time within the m/z ranges
+and retention time ranges of the detected chromatographic peaks. For an `xcms`
+result object containing also correspondence results (i.e. grouped
+chromatographic peaks across samples, also referred to as *features*) the
+`featureSpectra` function could be used instead.
 
 ```{r}
 std_spectra <- chromPeakSpectra(std_data, return.type = "Spectra",
@@ -490,7 +500,7 @@ differences of 50ppm between peaks from a query and a target spectrum. Since
 HMDB does not provide precursor m/z we in addition have to disable the
 additional matching filter (i.e. set `requirePrecursor = FALSE`), which has
 however a negative impact on the performance of the comparisons. By default,
-spectra similarities (calculated with the normalized dot product) higher than 
+spectra similarities (calculated with the normalized dot product) higher than
 0.7 will be considered matching.
 
 ```{r}
