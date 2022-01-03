@@ -15,7 +15,7 @@ opts_chunk$set(message = FALSE, warning = FALSE, fig.width = 8, fig.height = 7,
 ## BiocStyle::markdown()
 ```
 
-This documents provides use cases describing the annotation of non-target
+This documents provides use cases describing the annotation of untarget
 metabolomics and small compound datasets using functionality from the
 `r Biocpkg("MetaboAnnotation")`, `r Biocpkg("MetaboCoreUtils")` and
 `r Biocpkg("CompoundDb")` packages. All data used in this document is available
@@ -307,7 +307,7 @@ sulfonates as retention indexing substances. Their use allows to convert
 retention times into retention indices and to compare retention information
 across different LC-MS systems.
 
-We first load data from an non-targeted metabolomic experiments. This data has
+We first load data from an untargeted metabolomic experiments. This data has
 been completely processed. Each feature is identified by a unique name.
 
 ```{r}
@@ -344,7 +344,7 @@ ms1_features$rindex <- indexRtime(ms1_features$rtime, ms1_naps)
 
 This data can then be annotated using reference databases. Two different
 databases are used. One was obtained on a UHPLC column and one on a HPLC column
-of the same column chemistry. The non-targeted data was obtained from a HPLC
+of the same column chemistry. The untargeted data was obtained from a HPLC
 column, but using a different LC hardware, resulting in different absolute
 retention times.
 
